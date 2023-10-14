@@ -5,23 +5,61 @@ volumes:
     driver: local
 
 services:
-  upload-svc:
+
+  traefik:
+    # The official v2 Traefik docker image
+    image: traefik:v2.7
+    # Enables the web UI and tells Traefik to listen to docker
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - ./:/etc/traefik
+      - /var/run/docker.sock:/var/run/docker.sock
+      - traefik-ssl-certs:/ssl-certs
+    labels:
+      - "traefik.http.middlewares.set-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
+      - "traefik.http.middlewares.set-cors.headers.accesscontrolallowheaders=*,X-Custom-Header"
+      - "traefik.http.middlewares.set-cors.headers.accesscontrolalloworiginlist=http://localhost:8000"
+      - "traefik.http.middlewares.set-cors.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.set-cors.headers.accesscontrolallowcredentials=true"
+      - "traefik.http.middlewares.set-cors.headers.addvaryheader=true"
+      - "traefik.http.middlewares.stripprefix.stripprefix.prefixes=/auth,/api"
+      - "traefik.http.middlewares.my-auth.forwardauth.address=http://auth:7887/auth"
+      - "traefik.http.middlewares.my-auth.forwardauth.trustforwardheader=true"
+      - "traefik.http.middlewares.my-auth.forwardauth.authresponseheaders=username,Access-Control-Allow-Origin,Access-Control-Allow-Headers"
+    networks:
+      - front-office
+      - back-office
+
+  redis:
+    image: redis:7
+    restart: always
+    networks:
+      - back-office
+    depends_on:
+      - traefik
+
+  back-end:
     build:
-      context: ./scalable-p2-video-uploading-service
+      context: ./scalable-p2-backend
       dockerfile: Dockerfile
     networks:
       - back-office
     depends_on:
       - traefik
-    ports:
-     - "7000:7000"
+    restart: always
     labels:
-      - traefik.http.routers.upload-svc.rule=(Host(`toktik.localhost`) && Path(`/api/upload`))
-      # - traefik.http.services.upload-svc.loadbalancer.server.port=7000
-      # - traefik.http.routers.upload-svc.middlewares=test-auth,cors-headers
+      - traefik.http.routers.back-end.rule=(Host(`toktik.localhost`) && PathPrefix(`/api/`))
+      - traefik.http.services.back-end.loadbalancer.server.port=7000
+      - traefik.http.routers.back-end.middlewares=stripprefix,set-cors,my-auth
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} 
+
   front-end:
     build:
       context: ./scalable-p2-frontend
@@ -49,32 +87,7 @@ services:
       - traefik.http.services.auth.loadbalancer.server.port=7887
       - traefik.http.routers.auth.middlewares=stripprefix
 
-  traefik:
-    # The official v2 Traefik docker image
-    image: traefik:v2.7
-    # Enables the web UI and tells Traefik to listen to docker
-    ports:
-      # The HTTP port
-      - "80:80"
-      # The Web UI (enabled by --api.insecure=true)
-      - "8080:8080"
-    volumes:
-      # So that Traefik can listen to the Docker events
-      - ./:/etc/traefik
-      - /var/run/docker.sock:/var/run/docker.sock
-      - traefik-ssl-certs:/ssl-certs
-    labels:
-      - "traefik.http.middlewares.test-auth.forwardauth.address=toktik.localhost/auth/auth"
-      - traefik.http.middlewares.cors-headers.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST
-      - traefik.http.middlewares.cors-headers.headers.accesscontrolallowheaders=*
-      - traefik.http.middlewares.cors-headers.headers.accesscontrolalloworiginlist=*
-      - traefik.http.middlewares.cors-headers.headers.accesscontrolmaxage=100
-      - traefik.http.middlewares.cors-headers.headers.addvaryheader=true
-      - "traefik.http.middlewares.stripprefix.stripprefix.prefixes=/auth"
-    networks:
-      - front-office
-      - back-office
-
 networks:
   front-office: # frontend and api gateway
   back-office: # backend microservices and api gateway
+
