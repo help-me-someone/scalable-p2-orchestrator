@@ -22,7 +22,7 @@ services:
       - traefik-ssl-certs:/ssl-certs
     labels:
       - "traefik.http.middlewares.set-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
-      - "traefik.http.middlewares.set-cors.headers.accesscontrolallowheaders=*,X-Custom-Header"
+      - "traefik.http.middlewares.set-cors.headers.accesscontrolallowheaders=*,X-Custom-Header,X-Video-Name"
       - "traefik.http.middlewares.set-cors.headers.accesscontrolalloworiginlist=http://localhost:8000"
       - "traefik.http.middlewares.set-cors.headers.accesscontrolmaxage=100"
       - "traefik.http.middlewares.set-cors.headers.accesscontrolallowcredentials=true"
@@ -30,7 +30,7 @@ services:
       - "traefik.http.middlewares.stripprefix.stripprefix.prefixes=/auth,/api"
       - "traefik.http.middlewares.my-auth.forwardauth.address=http://auth:7887/auth"
       - "traefik.http.middlewares.my-auth.forwardauth.trustforwardheader=true"
-      - "traefik.http.middlewares.my-auth.forwardauth.authresponseheaders=username,Access-Control-Allow-Origin,Access-Control-Allow-Headers"
+      - "traefik.http.middlewares.my-auth.forwardauth.authresponseheaders=X-Username,Access-Control-Allow-Origin,Access-Control-Allow-Headers"
     networks:
       - front-office
       - back-office
