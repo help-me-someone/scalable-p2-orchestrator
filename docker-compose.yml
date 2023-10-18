@@ -3,8 +3,25 @@ version: '3'
 volumes:
   traefik-ssl-certs:
     driver: local
+  my-db:
+    driver: local
 
 services:
+  mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'toktik-db'
+      # So you don't have to use root, but you can if you like
+      MYSQL_USER: 'user'
+      # You can use whatever password you like
+      MYSQL_PASSWORD: 'password'
+      # Password for root access
+      MYSQL_ROOT_PASSWORD: 'password'
+    volumes:
+      - my-db:/var/lib/mysql
+    networks:
+      - back-office
 
   traefik:
     # The official v2 Traefik docker image
@@ -28,7 +45,7 @@ services:
       - "traefik.http.middlewares.set-cors.headers.accesscontrolallowcredentials=true"
       - "traefik.http.middlewares.set-cors.headers.addvaryheader=true"
       - "traefik.http.middlewares.stripprefix.stripprefix.prefixes=/auth,/api"
-      - "traefik.http.middlewares.my-auth.forwardauth.address=http://auth:7887/auth"
+      - "traefik.http.middlewares.my-auth.forwardauth.address=http://auth:7887/"
       - "traefik.http.middlewares.my-auth.forwardauth.trustforwardheader=true"
       - "traefik.http.middlewares.my-auth.forwardauth.authresponseheaders=X-Username,Access-Control-Allow-Origin,Access-Control-Allow-Headers"
     networks:
@@ -38,6 +55,8 @@ services:
   redis:
     image: redis:7
     restart: always
+    ports:
+      - "6379:6379"
     networks:
       - back-office
     depends_on:
@@ -50,7 +69,7 @@ services:
     networks:
       - back-office
     depends_on:
-      - traefik
+      - db-svc
     restart: always
     labels:
       - traefik.http.routers.back-end.rule=(Host(`toktik.localhost`) && PathPrefix(`/api/`))
@@ -73,11 +92,25 @@ services:
     networks:
       - front-office
 
+  db-svc:
+    build:
+      context: ./scalable-p2-db
+      dockerfile: Dockerfile
+    networks:
+      - back-office
+    restart: always
+    depends_on:
+      - mysql
+      - traefik
+    ports:
+      - "8083:8083"
+
   auth:
     build:
-      context: ./scalable-p2-api-gateway
+      context: ./scalable-p2-user-service
       dockerfile: Dockerfile
     depends_on:
+      - mysql
       - traefik
     networks:
       - back-office
@@ -86,6 +119,7 @@ services:
       - traefik.http.routers.auth.rule=(Host(`toktik.localhost`) && PathPrefix(`/auth/`))
       - traefik.http.services.auth.loadbalancer.server.port=7887
       - traefik.http.routers.auth.middlewares=stripprefix
+    restart: always
 
 networks:
   front-office: # frontend and api gateway
