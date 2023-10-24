@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: frontend-deployment
+  name: frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-deployment
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: frontend-deployment
+    spec:
+      imagePullSecrets:
+      - name: ghcr-login-secret
+      containers:
+      - image: ghcr.io/help-me-someone/scalable-p2-frontend/toktik-frontend:latest
+        name: toktik-frontend
+        ports:
+        - name: front-pod-port
+          containerPort: 8000
+        resources: {}
+status: {}

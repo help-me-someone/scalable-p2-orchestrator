@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: toktik-ingress
+  namespace: default
+spec:
+  rules:
+  - http:
+      paths:
+      - frontend:
+          service:
+            name: frontend-svc
+            port:
+              name: front-svc-port
+        path: /
+        pathType: Prefix
+status:
+  loadBalancer: {}
