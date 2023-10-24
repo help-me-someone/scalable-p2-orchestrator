@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: toktik-mysql
+  name: toktik-mysql-deployment
   labels:
-    app: toktik
+    app: toktik-mysql-deployment
 spec:
   selector:
     matchLabels:
-      app: toktik
+      app: toktik-mysql-deployment
       tier: mysql
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: toktik
+        app: toktik-mysql-deployment
         tier: mysql
     spec:
       containers:
