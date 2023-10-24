@@ -36,7 +36,7 @@ services:
       - "8080:8080"
     volumes:
       # So that Traefik can listen to the Docker events
-      - ./:/etc/traefik
+      - ../:/etc/traefik
       - /var/run/docker.sock:/var/run/docker.sock
       - traefik-ssl-certs:/ssl-certs
     labels:
@@ -69,7 +69,7 @@ services:
 
   worker:
     build:
-      context: ./scalable-p2-converter-worker
+      context: ../components/scalable-p2-worker
       dockerfile: Dockerfile
     networks: 
       - back-office
@@ -81,27 +81,29 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} 
 
-  back-end:
+  backend:
     build:
-      context: ./scalable-p2-backend
+      context: ../components/scalable-p2-backend
       dockerfile: Dockerfile
     networks:
       - back-office
     depends_on:
       - worker
     restart: always
+    ports:
+      - "7000:7000"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.back-end.rule=(Host(`toktik.localhost`) && PathPrefix(`/api/`))
-      - traefik.http.services.back-end.loadbalancer.server.port=7000
-      - traefik.http.routers.back-end.middlewares=stripprefix,set-cors,my-auth
+      - traefik.http.routers.backend.rule=(Host(`toktik.localhost`) && PathPrefix(`/api/`))
+      - traefik.http.services.backend.loadbalancer.server.port=7000
+      - traefik.http.routers.backend.middlewares=stripprefix,set-cors,my-auth
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} 
 
-  front-end:
+  frontend:
     build:
-      context: ./scalable-p2-frontend
+      context: ../components/scalable-p2-frontend
       dockerfile: Dockerfile
     environment:
       API_GATEWAY_URL: "toktik.localhost"
@@ -115,7 +117,7 @@ services:
 
   auth:
     build:
-      context: ./scalable-p2-user-service
+      context: ../components/scalable-p2-user-svc
       dockerfile: Dockerfile
     depends_on:
       - mysql
@@ -123,6 +125,8 @@ services:
     networks:
       - back-office
       - front-office 
+    ports:
+      - "7887:7887"
     labels:
       - traefik.enable=true
       - traefik.http.routers.auth.rule=(Host(`toktik.localhost`) && PathPrefix(`/auth/`))
