@@ -3,16 +3,29 @@ kind: Ingress
 metadata:
   name: toktik-ingress
   namespace: default
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: default-strip-prefix@kubernetescrd
 spec:
   rules:
-  - http:
+  - host: "localhost"
+    http:
       paths:
-      - frontend:
+      - backend:
           service:
             name: frontend-svc
             port:
               name: front-svc-port
         path: /
         pathType: Prefix
+  - host: "toktik.localhost"
+    http:
+      paths:
+      - path: /auth/
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-svc
+            port:
+              name: auth-svc-port
 status:
   loadBalancer: {}

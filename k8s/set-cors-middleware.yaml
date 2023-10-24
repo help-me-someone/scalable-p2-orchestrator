@@ -1,0 +1,20 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: set-cors
+spec:
+  headers:
+    accessControlAllowMethods:
+      - "GET"
+      - "OPTION"
+      - "PUT"
+      - "POST"
+    accessControlAllowHeaders:
+      - "*"
+      - "X-Custom-Header" # Holding cookies (horrible naming)
+      - "X-Video-Name"
+    accessControlAllowOriginList:
+      - "http://localhost"
+    accessControlMaxAge: 100
+    addVaryHeader: true
+    accessControlAllowCredentials: true

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: auth-deployment
+  name: auth-svc
+spec:
+  ports:
+  - name: auth-svc-port
+    port: 7887
+    protocol: TCP
+    targetPort: auth-pod-port
+  selector:
+    app: auth-deployment
+status:
+  loadBalancer: {}

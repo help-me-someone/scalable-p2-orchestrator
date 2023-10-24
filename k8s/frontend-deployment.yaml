@@ -26,4 +26,7 @@ spec:
         - name: front-pod-port
           containerPort: 8000
         resources: {}
+        env:
+        - name: API_GATEWAY_URL
+          value: toktik.localhost
 status: {}
