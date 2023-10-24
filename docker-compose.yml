@@ -22,6 +22,8 @@ services:
       - my-db:/var/lib/mysql
     networks:
       - back-office
+    ports:
+      - "3306:3306"
 
   traefik:
     # The official v2 Traefik docker image
@@ -38,6 +40,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - traefik-ssl-certs:/ssl-certs
     labels:
+      - traefik.enable=true
       - "traefik.http.middlewares.set-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
       - "traefik.http.middlewares.set-cors.headers.accesscontrolallowheaders=*,X-Custom-Header,X-Video-Name"
       - "traefik.http.middlewares.set-cors.headers.accesscontrolalloworiginlist=http://localhost:8000"
@@ -52,6 +55,8 @@ services:
       - front-office
       - back-office
 
+    
+
   redis:
     image: redis:7
     restart: always
@@ -62,6 +67,20 @@ services:
     depends_on:
       - traefik
 
+  worker:
+    build:
+      context: ./scalable-p2-converter-worker
+      dockerfile: Dockerfile
+    networks: 
+      - back-office
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} 
+
   back-end:
     build:
       context: ./scalable-p2-backend
@@ -69,9 +88,10 @@ services:
     networks:
       - back-office
     depends_on:
-      - db-svc
+      - worker
     restart: always
     labels:
+      - traefik.enable=true
       - traefik.http.routers.back-end.rule=(Host(`toktik.localhost`) && PathPrefix(`/api/`))
       - traefik.http.services.back-end.loadbalancer.server.port=7000
       - traefik.http.routers.back-end.middlewares=stripprefix,set-cors,my-auth
@@ -91,19 +111,7 @@ services:
       - traefik
     networks:
       - front-office
-
-  db-svc:
-    build:
-      context: ./scalable-p2-db
-      dockerfile: Dockerfile
-    networks:
       - back-office
-    restart: always
-    depends_on:
-      - mysql
-      - traefik
-    ports:
-      - "8083:8083"
 
   auth:
     build:
@@ -116,6 +124,7 @@ services:
       - back-office
       - front-office 
     labels:
+      - traefik.enable=true
       - traefik.http.routers.auth.rule=(Host(`toktik.localhost`) && PathPrefix(`/auth/`))
       - traefik.http.services.auth.loadbalancer.server.port=7887
       - traefik.http.routers.auth.middlewares=stripprefix
