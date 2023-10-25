@@ -6,7 +6,7 @@ spec:
   headers:
     accessControlAllowMethods:
       - "GET"
-      - "OPTION"
+      - "OPTIONS"
       - "PUT"
       - "POST"
     accessControlAllowHeaders:

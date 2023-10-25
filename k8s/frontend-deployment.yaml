@@ -29,4 +29,6 @@ spec:
         env:
         - name: API_GATEWAY_URL
           value: toktik.localhost
+        - name: BACKEND_URL
+          value: backend-svc.default.svc.cluster.local:7000
 status: {}

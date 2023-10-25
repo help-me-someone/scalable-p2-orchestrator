@@ -4,7 +4,7 @@ metadata:
   creationTimestamp: null
   labels:
     app: redis-deployment
-  name: redis-service
+  name: redis-svc
 spec:
   ports:
   - port: 6379

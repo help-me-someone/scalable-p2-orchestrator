@@ -44,4 +44,5 @@ spec:
               name: db-secret
               key: DB_PASS
         resources: {}
+      restartPolicy: Always
 status: {}

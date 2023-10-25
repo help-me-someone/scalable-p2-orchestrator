@@ -1,0 +1,18 @@
+# Forward authentication to the auth service.
+# The username is attached as a header to the
+# original request.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: forward-auth
+spec:
+  forwardAuth:
+    address: http://auth-svc.default.svc.cluster.local:7887/
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-Username
+      - Access-Control-Allow-Origin
+      - Access-Control-Allow-Headers
+    authRequestHeaders:
+      - Cookie
+      - X-Custom-Header
