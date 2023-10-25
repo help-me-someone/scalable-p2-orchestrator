@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: worker-deployment
+  name: worker-svc
+spec:
+  ports:
+  - name: back-svc-port
+    port: 80
+    protocol: TCP
+    targetPort: worker-pod-port
+  selector:
+    app: worker-deployment
+status:
+  loadBalancer: {}
