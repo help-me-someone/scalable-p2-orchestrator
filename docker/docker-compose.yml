@@ -149,6 +149,20 @@ services:
     - DB_USERNAME=user
     - DB_PASSWORD=password
 
+  websocket:
+    build:
+      context: ../components/scalable-p2-websocket
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+      - traefik
+    networks:
+      - back-office
+      - front-office 
+    ports:
+      - "5001:5001"
+  
+
 networks:
   front-office: # frontend and api gateway
   back-office: # backend microservices and api gateway
