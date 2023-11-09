@@ -55,8 +55,6 @@ services:
       - front-office
       - back-office
 
-    
-
   redis:
     image: redis:7
     restart: always
@@ -80,6 +78,11 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} 
+      - DB_IP=mysql:3306
+      - DB_USERNAME=user
+      - DB_PASSWORD=password
+      - MODE=DEBUG
+      - REDIS_IP=redis
 
   backend:
     build:
@@ -100,13 +103,20 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} 
+      - API_GATEWAY_URL=toktik.localhost
+      - DB_IP=mysql:3306
+      - DB_USERNAME=user
+      - DB_PASSWORD=password
+      - REDIS_IP=redis
+      - BACKEND_URL=backend:7000
 
   frontend:
     build:
       context: ../components/scalable-p2-frontend
       dockerfile: Dockerfile
     environment:
-      API_GATEWAY_URL: "toktik.localhost"
+    - API_GATEWAY_URL=toktik.localhost
+    - BACKEND_URL=backend:7000
     ports:
       - "8000:8000"
     depends_on:
@@ -133,6 +143,11 @@ services:
       - traefik.http.services.auth.loadbalancer.server.port=7887
       - traefik.http.routers.auth.middlewares=stripprefix
     restart: always
+    environment:
+    - ALLOWED_ORIGIN=http://localhost:8000
+    - DB_IP=mysql:3306
+    - DB_USERNAME=user
+    - DB_PASSWORD=password
 
 networks:
   front-office: # frontend and api gateway
