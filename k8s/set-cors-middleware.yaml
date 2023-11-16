@@ -13,6 +13,11 @@ spec:
       - "*"
       - "X-Custom-Header" # Holding cookies (horrible naming)
       - "X-Video-Name"
+      - "Hx-Request"
+      - "Hx-Current-Url"
+      - "Hx-Target"
+      - "Hx-Trigger"
+
     accessControlAllowOriginList:
       - "http://localhost"
     accessControlMaxAge: 100

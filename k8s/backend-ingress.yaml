@@ -48,3 +48,19 @@ spec:
       passHostHeader: true
       port: 7887
       strategy: RoundRobin
+
+  # Websocket.
+  - kind: Rule
+    match: Host(`toktik.ws.localhost`)  
+    services:                       
+    - kind: Service
+      name: websocket-svc
+      namespace: default
+      passHostHeader: true
+      port: 5001
+      strategy: RoundRobin
+      sticky:
+        cookie:
+          sameSite: none
+          name: token
+          httpOnly: true

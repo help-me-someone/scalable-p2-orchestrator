@@ -42,7 +42,7 @@ services:
     labels:
       - traefik.enable=true
       - "traefik.http.middlewares.set-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
-      - "traefik.http.middlewares.set-cors.headers.accesscontrolallowheaders=*,X-Custom-Header,X-Video-Name"
+      - "traefik.http.middlewares.set-cors.headers.accesscontrolallowheaders=*,X-Custom-Header,X-Video-Name,Hx-Request,Hx-Current-Url,Hx-Target,Hx-Trigger"
       - "traefik.http.middlewares.set-cors.headers.accesscontrolalloworiginlist=http://localhost:8000"
       - "traefik.http.middlewares.set-cors.headers.accesscontrolmaxage=100"
       - "traefik.http.middlewares.set-cors.headers.accesscontrolallowcredentials=true"
@@ -89,6 +89,7 @@ services:
       context: ../components/scalable-p2-backend
       dockerfile: Dockerfile
     networks:
+      - front-office
       - back-office
     depends_on:
       - worker
@@ -110,20 +111,20 @@ services:
       - REDIS_IP=redis
       - BACKEND_URL=backend:7000
 
-  frontend:
-    build:
-      context: ../components/scalable-p2-frontend
-      dockerfile: Dockerfile
-    environment:
-    - API_GATEWAY_URL=toktik.localhost
-    - BACKEND_URL=backend:7000
-    ports:
-      - "8000:8000"
-    depends_on:
-      - traefik
-    networks:
-      - front-office
-      - back-office
+  # frontend:
+  #   build:
+  #     context: ../components/scalable-p2-frontend
+  #     dockerfile: Dockerfile
+  #   environment:
+  #   - API_GATEWAY_URL=toktik.localhost
+  #   - BACKEND_URL=backend:7000
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - traefik
+  #   networks:
+  #     - front-office
+  #     - back-office
 
   auth:
     build:
@@ -161,7 +162,16 @@ services:
       - front-office 
     ports:
       - "5001:5001"
-  
+    environment:
+    - ALLOWED_ORIGIN=http://localhost:8000
+    - REDIS_IP=redis:6379
+    - DB_IP=mysql:3306
+    - DB_USERNAME=user
+    - DB_PASSWORD=password
+    labels:
+    - traefik.enable=true
+    - traefik.http.routers.websocket.rule=(Host(`toktik.ws.localhost`))
+    - traefik.http.services.websocket.loadbalancer.server.port=5001
 
 networks:
   front-office: # frontend and api gateway
