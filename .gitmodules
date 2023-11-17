@@ -1,0 +1,18 @@
+[submodule "components/scalable-p2-backend"]
+	path = components/scalable-p2-backend
+	url = git@github.com:help-me-someone/scalable-p2-backend.git
+[submodule "components/scalable-p2-db"]
+	path = components/scalable-p2-db
+	url = git@github.com:help-me-someone/scalable-p2-db.git
+[submodule "components/scalable-p2-frontend"]
+	path = components/scalable-p2-frontend
+	url = git@github.com:help-me-someone/scalable-p2-frontend.git
+[submodule "components/scalable-p2-user-svc"]
+	path = components/scalable-p2-user-svc
+	url = git@github.com:help-me-someone/scalable-p2-user-svc.git
+[submodule "components/scalable-p2-websocket"]
+	path = components/scalable-p2-websocket
+	url = git@github.com:help-me-someone/scalable-p2-websocket.git
+[submodule "components/scalable-p2-worker"]
+	path = components/scalable-p2-worker
+	url = git@github.com:help-me-someone/scalable-p2-worker.git
